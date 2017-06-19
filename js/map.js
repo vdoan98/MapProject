@@ -1,7 +1,60 @@
 var map;
 var locations;
-var markers;
+var markers = [];
+var infoWindows = [];
+
+var nytLoadData = function(key, name){
+  var $nytHeaderElem = $('#nytimes-header');
+  var $nytElem = $('#nytimes-articles');
+
+  $nytElem.text("");
+
+  var nytimesUrl ="https://api.nytimes.com/svc/search/v2/articlesearch.json";
+    nytimesUrl += '?' + $.param({
+      'api-key': "af75878939f64cd890a0bf968a4f660c",
+      'q': key
+    });
+
+  //Function used API url, search for article with the
+  //word "Denver" and append it to the unordered list
+  $.getJSON(nytimesUrl, function(data){
+
+      // $nytHeaderElem.text('News that are brewing in Denver');
+      vm.nytHeaderText('News relevant to ' + name);
+
+      articles = data.response.docs;
+      for (var i = 0; i < articles.length; i++) {
+          var article = articles[i];
+
+          var snippet;
+          if (article.snippet) {
+            snippet = article.snippet;
+          } else {
+            snippet = "Snippet not available";
+          }
+
+          var articleObject = {
+            name: article.headline.main,
+            snippet: snippet,
+            url: article.web_url
+          };
+          vm.nytArticles.push(articleObject);
+
+
+          // $nytElem.append('<li class="article">'+
+          //     '<a href="'+article.web_url+'">'+article.headline.main+'</a>'+
+          //     '<p>' + article.snippet + '</p>'+
+          // '</li>');
+      }
+
+  }).error(function(e){
+      $nytHeaderElem.text('New York Times Articles Could Not Be Loaded');
+  });
+};
+
 function initMap(){
+
+  // var nyt = new nytLoadData("denver");
 
   //Constructor for new maps. Initilized as soon as page loaded
   map = new google.maps.Map(document.getElementById('map'), {
@@ -12,48 +65,67 @@ function initMap(){
   var largeInfoWindow = new google.maps.InfoWindow();
   var bounds = new google.maps.LatLngBounds();
 
+  var defaultIcon = makeMarkerIcon('20B2AA');
+  var highlightedIcon = makeMarkerIcon('FFA07A');
+
   locations = [
     {
       name: 'Denver Museum of Nature History',
       location: {lat: 39.7475, lng: -104.9428},
-      category: 'Museum'
+      category: 'Museum',
+      key: 'science'
     },
     {
       name: 'Tattered Cover Book Store',
       location: {lat: 39.740620, lng: -104.956524},
-      category: 'Bookstore'
+      category: 'Bookstore',
+      key: 'book'
     },
     {
       name: 'BookBar',
       location: {lat: 39.7752, lng: -105.0439},
-      category: 'Bookstore'
+      category: 'Bookstore',
+      key: 'book'
     },
     {
       name: 'Bluebird Theater',
       location: {lat: 39.7403, lng: -104.9484},
-      category: 'Entertainment'
+      category: 'Entertainment',
+      key: 'movie'
     },
     {
       name: 'Denver Zoo',
       location: {lat: 39.7494, lng: -104.9498},
-      category: 'Entertainment'
+      category: 'Entertainment',
+      key: 'animals'
     },
     {
       name: '16th Street Mall',
       location: {lat: 39.7478, lng: -104.9949},
-      category: 'Entertainment'
+      category: 'Entertainment',
+      key: 'shopping'
     },
     {
       name: 'Kilgore Books',
       location: {lat: 39.7367, lng: -104.9790},
-      category: 'Bookstore'
+      category: 'Bookstore',
+      key: 'book'
     }
   ];
 
-  markers = [];
 
-  var defaultIcon = makeMarkerIcon('20B2AA');
-  var highlightedIcon = makeMarkerIcon('FFA07A');
+  function clickMarker(marker, infowindow){
+    populateInfoWindow(marker, infowindow);
+    toggleBounce(marker);
+  };
+
+  function mouseOver(marker, highlight){
+    marker.setIcon(highlight);
+  };
+
+  function mouseOut(marker, defaultIcon){
+    marker.setIcon(defaultIcon);
+  };
 
   for (var i = 0; i < locations.length; i++){
     var position = locations[i].location;
@@ -67,42 +139,37 @@ function initMap(){
       icon: defaultIcon,
       id: i,
     });
-
+    var self = this;
 
     markers.push(marker);
+    infoWindows.push(largeInfoWindow);
 
     bounds.extend(marker.position);
 
     //Action listeners for every locations, marker and infowindow
-    marker.addListener('click', function(){
-      populateInfoWindow(this, largeInfoWindow);
-      toggleBounce(this);
-    });
+    marker.addListener('click', clickMarker(self, largeInfoWindow));
 
-    marker.addListener('mouseover', function() {
-      this.setIcon(highlightedIcon);
-    });
-    marker.addListener('mouseout', function() {
-      this.setIcon(defaultIcon);
-    });
+    marker.addListener('mouseover', mouseOver(self, highlightedIcon));
 
-    //show-listings show all hidden markers
-    document.getElementById('show-listings').addEventListener('click', function(){
-      for(var i = 0; i < markers.length; i++){
-        markers[i].setVisible(true);
-      }
-    });
+    marker.addListener('mouseout', mouseOut(self, defaultIcon));
 
-    //hide-listings hide all markers
-    document.getElementById('hide-listings').addEventListener('click', function(){
-      for(var i = 0; i < markers.length; i++){
-        markers[i].setVisible(false);
-      }
-    });
   }
 
 }
 
+
+// function clickMarker(marker, infowindow){
+//   populateInfoWindow(marker, infowindow);
+//   toggleBounce(marker);
+// };
+//
+// function mouseOver(marker, highlight){
+//   marker.setIcon(highlight);
+// };
+//
+// function mouseOut(marker, defaultIcon){
+//   marker.setIcon(defaultIcon);
+// };
 
 
 //Populate info window. Every infoWindow is attached to a marker of a location
@@ -149,28 +216,36 @@ function toggleBounce(marker) {
 //SearchViewModel utilizes Knockout JS to create a
 //drop down list that allow user to chose which location
 //they wish to view.
-var SearchViewModel = function(){
+var viewModel = function(){
+  var self = this;
   this.locations = [
     {
-      name: 'Denver Museum of Nature History'
+      name: 'Denver Museum of Nature History',
+      key: 'science'
     },
     {
-      name: 'Tattered Cover Book Store'
+      name: 'Tattered Cover Book Store',
+      key: 'book'
     },
     {
-      name: 'BookBar'
+      name: 'BookBar',
+      key: 'book'
     },
     {
-      name: 'Bluebird Theater'
+      name: 'Bluebird Theater',
+      key: 'movie'
     },
     {
-      name: 'Denver Zoo'
+      name: 'Denver Zoo',
+      key: 'animals'
     },
     {
-      name: '16th Street Mall'
+      name: '16th Street Mall',
+      key: 'shopping'
     },
     {
-      name: 'Kilgore Books'
+      name: 'Kilgore Books',
+      key: 'book'
     }
   ];
 
@@ -182,18 +257,11 @@ var SearchViewModel = function(){
     for (var i = 0; i < locations.length; i++){
       if(locations[i].name === $("#search").text()){
         toggleBounce(markers[i]);
+        new nytLoadData(locations[i].key, locations[i].name);
       }
     }
   };
-};
 
-//FiltersViewModel utilizes Knockout JS to create
-//a dropdown list that allow user to filter for
-//what kind of locations they wish to search for.
-//If they are looking for bookstore, the object function
-//filter and only show the locations that fit in
-//the description
-var FiltersViewModel = function(){
   this.types = [
     { type: 'Museum' },
     { type: 'Bookstore' },
@@ -205,7 +273,7 @@ var FiltersViewModel = function(){
   //Filter for location based on category
   this.filterLocation = function(){
     for (var i = 0; i < locations.length; i++){
-      if(locations[i].category !== $("#choice").text()){
+      if(locations[i].category !== self.chosenType().type){
         markers[i].setVisible(false);
       }else {
         markers[i].setVisible(true);
@@ -221,4 +289,25 @@ var FiltersViewModel = function(){
       markers[i].setVisible(true);
     };
   };
-}
+
+  this.showListings = function() {
+    for(var i = 0; i < markers.length; i++){
+      markers[i].setVisible(true);
+    }
+  }
+
+  this.hideListings = function(){
+    for(var i = 0; i < markers.length; i++){
+      markers[i].setVisible(false);
+    }
+  }
+
+  this.nytArticles = ko.observableArray();
+  this.nytHeaderText = ko.observable('NYT Articles Today');
+};
+
+
+var vm = new viewModel();
+ko.applyBindings(vm);
+vm.searchLocation;
+vm.filterLocation;
