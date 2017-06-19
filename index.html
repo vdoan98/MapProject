@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <link rel="stylesheet" href="css/style.css">
-    <script type="text/javascript" src="js/map.js"></script>
+
 
     <style>
       @media screen and (max-width: 600px){
@@ -38,8 +38,8 @@
           <div id="dropdown-content" style="">
             <h1> Welcome to Denver!</h1>
             <div>
-              <input id="show-listings" type="button" value="Show Listings">
-              <input id="hide-listings" type="button" value="Hide Listings">
+              <input id="show-listings" type="button" value="Show Listings" data-bind="click: showListings">
+              <input id="hide-listings" type="button" value="Hide Listings" data-bind="click: hideListings">
             </div>
             <script src="js/knockout-3.4.2.js"></script>
 
@@ -77,22 +77,7 @@
                 Good choice! Here are the <span data-bind= "text: type" id="choice"></span> locations.
               </p>
 
-              <script src="js/libs/jquery.min.js"></script>
-              <script>
 
-                $(document).ready(function(){
-                  var searchVM = new SearchViewModel();
-                  ko.applyBindings(searchVM, document.getElementById('search-box'));
-                  searchVM.searchLocation;
-
-
-                  var filterVM = new FiltersViewModel();
-                  ko.applyBindings(filterVM, document.getElementById('filterCheckBox'));
-                  filterVM.filterLocation;
-                });
-
-
-              </script>
             </div>
 
           </div>
@@ -101,21 +86,21 @@
 
       <div class="column">
         <div class="col-12">
-          <h1 id="nytimes-header">NYT Articles Today</h1>
+          <h1 id="nytimes-header" data-bind="text: nytHeaderText"></h1>
           <div class="article-container">
-            <ul id="nytimes-articles" class="article-list">What's brewing on the news</ul>
+            <ul id="nytimes-articles" class="article-list" data-bind="foreach: nytArticles">
+              <li class="article"><a data-bind="attr: { href: url, title: name }, text: name"></a><p data-bind="text: snippet"></p></li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
 
-
+    <script src="js/libs/jquery.min.js"></script>
     <script async defer
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUxoO8IVbqCc8vuKGTGSS0sIzQhcdPs5s&callback=initMap">
     </script>
-
-    <script type="text/javascript" src="js/nyt.js"></script>
-    <script src="js/libs/jquery.min.js"></script>
+    <script type="text/javascript" src="js/map.js"></script>
 
     <script>
       function toggleMenu() {
