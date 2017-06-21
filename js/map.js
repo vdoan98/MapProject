@@ -1,6 +1,7 @@
 var map;
 var locations;
 var markers = [];
+var largeInfoWindow;
 var infoWindows = [];
 
 var nytLoadData = function(key, name){
@@ -62,7 +63,7 @@ function initMap(){
     zoom: 13
   });
 
-  var largeInfoWindow = new google.maps.InfoWindow();
+  largeInfoWindow = new google.maps.InfoWindow();
   var bounds = new google.maps.LatLngBounds();
 
   var defaultIcon = makeMarkerIcon('20B2AA');
@@ -114,18 +115,18 @@ function initMap(){
   ];
 
 
-  function clickMarker(marker, infowindow){
-    populateInfoWindow(marker, infowindow);
-    toggleBounce(marker);
-  };
+  function clickMarker(){
+    populateInfoWindow(this, largeInfoWindow);
+    toggleBounce(this);
+  }
 
-  function mouseOver(marker, highlight){
-    marker.setIcon(highlight);
-  };
+  function mouseOver(){
+    this.setIcon(highlightedIcon);
+  }
 
-  function mouseOut(marker, defaultIcon){
-    marker.setIcon(defaultIcon);
-  };
+  function mouseOut(){
+    this.setIcon(defaultIcon);
+  }
 
   for (var i = 0; i < locations.length; i++){
     var position = locations[i].location;
@@ -147,11 +148,11 @@ function initMap(){
     bounds.extend(marker.position);
 
     //Action listeners for every locations, marker and infowindow
-    marker.addListener('click', clickMarker(self, largeInfoWindow));
+    marker.addListener('click', clickMarker);
 
-    marker.addListener('mouseover', mouseOver(self, highlightedIcon));
+    marker.addListener('mouseover', mouseOver);
 
-    marker.addListener('mouseout', mouseOut(self, defaultIcon));
+    marker.addListener('mouseout', mouseOut);
 
   }
 
@@ -257,7 +258,7 @@ var viewModel = function(){
     for (var i = 0; i < locations.length; i++){
       if(locations[i].name === $("#search").text()){
         toggleBounce(markers[i]);
-        new nytLoadData(locations[i].key, locations[i].name);
+        nytLoadData(locations[i].key, locations[i].name);
       }
     }
   };
@@ -287,20 +288,20 @@ var viewModel = function(){
     this.chosenType(null);
     for (var i = 0; i < locations.length; i++){
       markers[i].setVisible(true);
-    };
+    }
   };
 
   this.showListings = function() {
     for(var i = 0; i < markers.length; i++){
       markers[i].setVisible(true);
     }
-  }
+  };
 
   this.hideListings = function(){
     for(var i = 0; i < markers.length; i++){
       markers[i].setVisible(false);
     }
-  }
+  };
 
   this.nytArticles = ko.observableArray();
   this.nytHeaderText = ko.observable('NYT Articles Today');
