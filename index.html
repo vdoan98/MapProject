@@ -47,16 +47,13 @@
               <h2> What is your next destination?</h2>
 
               Search for location:
-              <select data-bind="options: locations,
-                                optionsCaption: 'Places...',
-                                optionsText: 'name',
-                                value: chosenLocation,"></select>
-              <button data-bind="enable: chosenLocation,
+
+              <select type="text" data-bind="options: allLocations, value: selectedLocation"> </select>
+
+              <button data-bind="enable: selectedLocation,
                                 click: searchLocation">Search</button>
 
-              <p data-bind="with: chosenLocation">
-                  You looked for <span data-bind= "text: name" id="search"></span> .
-              </p>
+              
             </div>
 
 
@@ -97,8 +94,8 @@
     </div>
 
     <script src="js/libs/jquery.min.js"></script>
-    <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUxoO8IVbqCc8vuKGTGSS0sIzQhcdPs5s&callback=initMap">
+    <script defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUxoO8IVbqCc8vuKGTGSS0sIzQhcdPs5s&callback=initMap" onerror="googleError()">
     </script>
     <script type="text/javascript" src="js/map.js"></script>
 
