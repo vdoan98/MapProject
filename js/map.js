@@ -2,74 +2,9 @@ var map;
 var locations;
 var markers = [];
 var largeInfoWindow;
-var infoWindows = [];
+var vm;
 
-var nytLoadData = function(key, name){
-  var $nytHeaderElem = $('#nytimes-header');
-  var $nytElem = $('#nytimes-articles');
-
-  $nytElem.text("");
-
-  var nytimesUrl ="https://api.nytimes.com/svc/search/v2/articlesearch.json";
-    nytimesUrl += '?' + $.param({
-      'api-key': "af75878939f64cd890a0bf968a4f660c",
-      'q': key
-    });
-
-  //Function used API url, search for article with the
-  //word "Denver" and append it to the unordered list
-  $.getJSON(nytimesUrl, function(data){
-
-      // $nytHeaderElem.text('News that are brewing in Denver');
-      vm.nytHeaderText('News relevant to ' + name);
-
-      articles = data.response.docs;
-      for (var i = 0; i < articles.length; i++) {
-          var article = articles[i];
-
-          var snippet;
-          if (article.snippet) {
-            snippet = article.snippet;
-          } else {
-            snippet = "Snippet not available";
-          }
-
-          var articleObject = {
-            name: article.headline.main,
-            snippet: snippet,
-            url: article.web_url
-          };
-          vm.nytArticles.push(articleObject);
-
-
-          // $nytElem.append('<li class="article">'+
-          //     '<a href="'+article.web_url+'">'+article.headline.main+'</a>'+
-          //     '<p>' + article.snippet + '</p>'+
-          // '</li>');
-      }
-
-  }).error(function(e){
-      $nytHeaderElem.text('New York Times Articles Could Not Be Loaded');
-  });
-};
-
-function initMap(){
-
-  // var nyt = new nytLoadData("denver");
-
-  //Constructor for new maps. Initilized as soon as page loaded
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 39.7475, lng: -104.9428},
-    zoom: 13
-  });
-
-  largeInfoWindow = new google.maps.InfoWindow();
-  var bounds = new google.maps.LatLngBounds();
-
-  var defaultIcon = makeMarkerIcon('20B2AA');
-  var highlightedIcon = makeMarkerIcon('FFA07A');
-
-  locations = [
+locations = [
     {
       name: 'Denver Museum of Nature History',
       location: {lat: 39.7475, lng: -104.9428},
@@ -114,6 +49,67 @@ function initMap(){
     }
   ];
 
+var nytLoadData = function(key, name){
+
+
+  var nytimesUrl ="https://api.nytimes.com/svc/search/v2/articlesearch.json";
+    nytimesUrl += '?' + $.param({
+      'api-key': "af75878939f64cd890a0bf968a4f660c",
+      'q': key
+    });
+
+  //Function used API url, search for article with the
+  //word "Denver" and append it to the unordered list
+  $.getJSON(nytimesUrl, function(data){
+
+      // $nytHeaderElem.text('News that are brewing in Denver');
+      vm.nytHeaderText('News relevant to ' + name);
+
+      articles = data.response.docs;
+      var content= "";
+      for (var i = 0; i < articles.length; i++) {
+          var article = articles[i];
+
+          var snippet;
+          if (article.snippet) {
+            snippet = article.snippet;
+            content += snippet;
+          } else {
+            snippet = "Snippet not available";
+          }
+
+          var articleObject = {
+            name: article.headline.main,
+            snippet: snippet,
+            url: article.web_url
+          };
+          vm.nytArticles.push(articleObject);
+
+      }
+
+
+  }).fail(function(e){
+    var $nytHeaderElem = $('#nytimes-header');
+    $nytHeaderElem.text('New York Times Articles Could Not Be Loaded');
+  });
+};
+
+function initMap(){
+
+
+  //Constructor for new maps. Initilized as soon as page loaded
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat: 39.742043, lng: -104.991531},
+    zoom: 13
+  });
+
+  largeInfoWindow = new google.maps.InfoWindow();
+  var bounds = new google.maps.LatLngBounds();
+
+  var defaultIcon = makeMarkerIcon('20B2AA');
+  var highlightedIcon = makeMarkerIcon('FFA07A');
+  
+
 
   function clickMarker(){
     populateInfoWindow(this, largeInfoWindow);
@@ -140,10 +136,10 @@ function initMap(){
       icon: defaultIcon,
       id: i,
     });
-    var self = this;
 
     markers.push(marker);
-    infoWindows.push(largeInfoWindow);
+    locations[i].marker = marker;
+
 
     bounds.extend(marker.position);
 
@@ -155,22 +151,11 @@ function initMap(){
     marker.addListener('mouseout', mouseOut);
 
   }
+  vm = new viewModel();
+  ko.applyBindings(vm);
 
 }
 
-
-// function clickMarker(marker, infowindow){
-//   populateInfoWindow(marker, infowindow);
-//   toggleBounce(marker);
-// };
-//
-// function mouseOver(marker, highlight){
-//   marker.setIcon(highlight);
-// };
-//
-// function mouseOut(marker, defaultIcon){
-//   marker.setIcon(defaultIcon);
-// };
 
 
 //Populate info window. Every infoWindow is attached to a marker of a location
@@ -219,45 +204,26 @@ function toggleBounce(marker) {
 //they wish to view.
 var viewModel = function(){
   var self = this;
-  this.locations = [
-    {
-      name: 'Denver Museum of Nature History',
-      key: 'science'
-    },
-    {
-      name: 'Tattered Cover Book Store',
-      key: 'book'
-    },
-    {
-      name: 'BookBar',
-      key: 'book'
-    },
-    {
-      name: 'Bluebird Theater',
-      key: 'movie'
-    },
-    {
-      name: 'Denver Zoo',
-      key: 'animals'
-    },
-    {
-      name: '16th Street Mall',
-      key: 'shopping'
-    },
-    {
-      name: 'Kilgore Books',
-      key: 'book'
-    }
-  ];
+  var tempList =[];
 
-  this.chosenLocation = ko.observable();
+  
 
+  for (var i = 0; i < locations.length; i++){
+    tempList.push(locations[i].name);
+  }
+
+  this.allLocations = ko.observableArray(tempList);
+  this.selectedLocation = ko.observable("");
+  
   //Function animate the marker that marked
   //the chosen location to draw user attention
   this.searchLocation = function(){
     for (var i = 0; i < locations.length; i++){
-      if(locations[i].name === $("#search").text()){
-        toggleBounce(markers[i]);
+
+      //TODO: Create Knockout Observatble 
+      if(locations[i].name === self.selectedLocation()){
+        toggleBounce(locations[i].marker);
+        populateInfoWindow(locations[i].marker, largeInfoWindow);
         nytLoadData(locations[i].key, locations[i].name);
       }
     }
@@ -308,7 +274,5 @@ var viewModel = function(){
 };
 
 
-var vm = new viewModel();
-ko.applyBindings(vm);
-vm.searchLocation;
-vm.filterLocation;
+
+
