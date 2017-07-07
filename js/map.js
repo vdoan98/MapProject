@@ -15,7 +15,7 @@ locations = [
       name: 'Tattered Cover Book Store',
       location: {lat: 39.740620, lng: -104.956524},
       category: 'Bookstore',
-      key: 'book'
+      key: 'book, used'
     },
     {
       name: 'BookBar',
@@ -45,7 +45,7 @@ locations = [
       name: 'Kilgore Books',
       location: {lat: 39.7367, lng: -104.9790},
       category: 'Bookstore',
-      key: 'book'
+      key: 'book, Denver'
     }
   ];
 
@@ -239,9 +239,11 @@ var viewModel = function(){
 
   //Filter for location based on category
   this.filterLocation = function(){
+    var filterList = [];
     for (var i = 0; i < locations.length; i++){
       if(locations[i].category !== self.chosenType().type){
         markers[i].setVisible(false);
+        self.allLocations.remove(i);
       }else {
         markers[i].setVisible(true);
       }
@@ -254,6 +256,7 @@ var viewModel = function(){
     this.chosenType(null);
     for (var i = 0; i < locations.length; i++){
       markers[i].setVisible(true);
+      self.allLocations = ko.observableArray(tempList);
     }
   };
 
