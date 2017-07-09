@@ -9,43 +9,50 @@ locations = [
       name: 'Denver Museum of Nature History',
       location: {lat: 39.7475, lng: -104.9428},
       category: 'Museum',
-      key: 'science'
+      key: 'science',
+      status: 'Y'
     },
     {
       name: 'Tattered Cover Book Store',
       location: {lat: 39.740620, lng: -104.956524},
       category: 'Bookstore',
-      key: 'book, used'
+      key: 'book, used',
+      status: 'Y'
     },
     {
       name: 'BookBar',
       location: {lat: 39.7752, lng: -105.0439},
       category: 'Bookstore',
-      key: 'book'
+      key: 'book',
+      status: 'Y'
     },
     {
       name: 'Bluebird Theater',
       location: {lat: 39.7403, lng: -104.9484},
       category: 'Entertainment',
-      key: 'movie'
+      key: 'movie',
+      status: 'Y'
     },
     {
       name: 'Denver Zoo',
       location: {lat: 39.7494, lng: -104.9498},
       category: 'Entertainment',
-      key: 'animals'
+      key: 'animals',
+      status: 'Y'
     },
     {
       name: '16th Street Mall',
       location: {lat: 39.7478, lng: -104.9949},
       category: 'Entertainment',
-      key: 'shopping'
+      key: 'shopping',
+      status: 'Y'
     },
     {
       name: 'Kilgore Books',
       location: {lat: 39.7367, lng: -104.9790},
       category: 'Bookstore',
-      key: 'book, Denver'
+      key: 'book, Denver',
+      status: 'Y'
     }
   ];
 
@@ -204,20 +211,15 @@ function toggleBounce(marker) {
 //they wish to view.
 var viewModel = function(){
   var self = this;
-  var tempList =[];
 
-  
+  this.allLocations = ko.observableArray(locations);
 
-  for (var i = 0; i < locations.length; i++){
-    tempList.push(locations[i].name);
-  }
 
-  this.allLocations = ko.observableArray(tempList);
   this.selectedLocation = ko.observable("");
   
   //Function animate the marker that marked
   //the chosen location to draw user attention
-  this.searchLocation = function(){
+  this.searchLocation = function(index){
     for (var i = 0; i < locations.length; i++){
 
       //TODO: Create Knockout Observatble 
@@ -235,16 +237,17 @@ var viewModel = function(){
     { type: 'Entertainment' }
   ];
 
-  this.chosenType = ko.observable();
+  this.chosenType = ko.observable('');
+
 
   //Filter for location based on category
   this.filterLocation = function(){
-    var filterList = [];
     for (var i = 0; i < locations.length; i++){
       if(locations[i].category !== self.chosenType().type){
         markers[i].setVisible(false);
-        self.allLocations.remove(i);
-      }else {
+        self.allLocations[i].status = 'N';
+      
+      }else if (locations[i].category === self.chosenType().type){
         markers[i].setVisible(true);
       }
     }
@@ -256,7 +259,7 @@ var viewModel = function(){
     this.chosenType(null);
     for (var i = 0; i < locations.length; i++){
       markers[i].setVisible(true);
-      self.allLocations = ko.observableArray(tempList);
+      self.allLocations[i].status = 'Y';
     }
   };
 
