@@ -43,15 +43,23 @@
             </div>
             <script src="js/knockout-3.4.2.js"></script>
 
+
             <div id="search-box">
               <h2> What is your next destination?</h2>
 
               Search for location:
 
-              <select multiple="multiple" size= "4" type="text" data-bind="options: allLocations, value: selectedLocation"> </select>
+              <ul data-bind="foreach: allLocations">
+                <li data-bind="text: name,
+                              value: status,
+                              click: $root.searchLocation.bind($root, $index()),
+                              visible: status==='Y'"></li>
+              </ul>
 
-              <button data-bind="enable: selectedLocation,
-                                click: searchLocation">Search</button>
+              <!-- <select multiple="multiple" size= "3" type="text" data-bind="options: allLocations, value: selectedLocation"> </select> -->
+
+              <!-- <button data-bind="enable: selectedLocation,
+                                click: searchLocation">Search</button> -->
 
               
             </div>
