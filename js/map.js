@@ -10,49 +10,49 @@ locations = [
       location: {lat: 39.7475, lng: -104.9428},
       category: 'Museum',
       key: 'science',
-      status: 'Y'
+      visible: ko.observable(true)
     },
     {
       name: 'Tattered Cover Book Store',
       location: {lat: 39.740620, lng: -104.956524},
       category: 'Bookstore',
       key: 'book, used',
-      status: 'Y'
+      visible: ko.observable(true)
     },
     {
       name: 'BookBar',
       location: {lat: 39.7752, lng: -105.0439},
       category: 'Bookstore',
       key: 'book',
-      status: 'Y'
+      visible: ko.observable(true)
     },
     {
       name: 'Bluebird Theater',
       location: {lat: 39.7403, lng: -104.9484},
       category: 'Entertainment',
       key: 'movie',
-      status: 'Y'
+      visible: ko.observable(true)
     },
     {
       name: 'Denver Zoo',
       location: {lat: 39.7494, lng: -104.9498},
       category: 'Entertainment',
       key: 'animals',
-      status: 'Y'
+      visible: ko.observable(true)
     },
     {
       name: '16th Street Mall',
       location: {lat: 39.7478, lng: -104.9949},
       category: 'Entertainment',
       key: 'shopping',
-      status: 'Y'
+      visible: ko.observable(true)
     },
     {
       name: 'Kilgore Books',
       location: {lat: 39.7367, lng: -104.9790},
       category: 'Bookstore',
       key: 'book, Denver',
-      status: 'Y'
+      visible: ko.observable(true)
     }
   ];
 
@@ -214,21 +214,13 @@ var viewModel = function(){
 
   this.allLocations = ko.observableArray(locations);
 
-
   this.selectedLocation = ko.observable("");
   
   //Function animate the marker that marked
   //the chosen location to draw user attention
-  this.searchLocation = function(index){
-    for (var i = 0; i < locations.length; i++){
-
-      //TODO: Create Knockout Observatble 
-      if(locations[i].name === self.selectedLocation()){
-        toggleBounce(locations[i].marker);
-        populateInfoWindow(locations[i].marker, largeInfoWindow);
-        nytLoadData(locations[i].key, locations[i].name);
-      }
-    }
+  this.searchLocation = function(location){
+    google.maps.event.trigger(location.marker, 'click'); 
+    nytLoadData(location.key, location.name);
   };
 
   this.types = [
@@ -241,14 +233,14 @@ var viewModel = function(){
 
 
   //Filter for location based on category
-  this.filterLocation = function(){
+  this.filterLocation = function(location){
     for (var i = 0; i < locations.length; i++){
       if(locations[i].category !== self.chosenType().type){
         markers[i].setVisible(false);
-        self.allLocations[i].status = 'N';
-      
+        self.allLocations[i].visible(false);
       }else if (locations[i].category === self.chosenType().type){
         markers[i].setVisible(true);
+        self.allLocations[i].visible(true);
       }
     }
   };
@@ -259,7 +251,8 @@ var viewModel = function(){
     this.chosenType(null);
     for (var i = 0; i < locations.length; i++){
       markers[i].setVisible(true);
-      self.allLocations[i].status = 'Y';
+      self.allLocations[i].visible(true);
+      
     }
   };
 
