@@ -52,8 +52,8 @@
               <ul data-bind="foreach: allLocations">
                 <li data-bind="text: name,
                               value: status,
-                              click: $root.searchLocation.bind($root, $index()),
-                              visible: status==='Y'"></li>
+                              click: $root.searchLocation,
+                              visible: visible"></li>
               </ul>
 
               <!-- <select multiple="multiple" size= "3" type="text" data-bind="options: allLocations, value: selectedLocation"> </select> -->
